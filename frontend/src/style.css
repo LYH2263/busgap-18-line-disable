@@ -169,6 +169,25 @@ th { color: var(--bg-dim); font-weight: 600; font-size: 0.78rem; }
 }
 .btn:hover { filter: brightness(1.08); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost {
+  background: transparent; color: var(--bg-cyan);
+  border: 1px solid var(--bg-edge);
+  padding: 0.4rem 0.85rem; font-weight: 700; cursor: pointer; font-size: 0.82rem;
+}
+.btn-ghost:hover { border-color: var(--bg-cyan); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-danger {
+  background: transparent; color: var(--bg-red);
+  border: 1px solid rgba(255,77,109,0.5);
+  padding: 0.4rem 0.85rem; font-weight: 700; cursor: pointer; font-size: 0.82rem;
+}
+.btn-danger:hover { background: rgba(255,77,109,0.12); }
+.notice {
+  background: rgba(255,176,32,0.1);
+  border: 1px solid rgba(255,176,32,0.45);
+  color: var(--bg-amber);
+  padding: 0.6rem 0.85rem; font-size: 0.85rem; margin-bottom: 0.9rem;
+}
 .muted { color: var(--bg-dim); }
 .stat { font-size: 1.55rem; font-weight: 800; }
 

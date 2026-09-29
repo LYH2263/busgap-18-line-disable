@@ -1,12 +1,22 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
-const data = ref<{ stop_name: string; marks: any[] }>({ stop_name: '', marks: [] })
-onMounted(async () => { data.value = await api('/reports/timeline?line_id=1') })
+import { CURRENT_LINE_ID } from '../lines'
+const data = ref<{ stop_name: string; marks: any[]; is_active: boolean }>({ stop_name: '', marks: [], is_active: true })
+const loadError = ref(false)
+onMounted(async () => {
+  try {
+    data.value = await api(`/reports/timeline?line_id=${CURRENT_LINE_ID}`)
+  } catch {
+    loadError.value = true
+  }
+})
 </script>
 <template>
   <h1>时间轴明细</h1>
   <p class="sub">站点「{{ data.stop_name }}」到站分布（顶部已展示发车间隔轴）</p>
+  <div v-if="!data.is_active && !loadError" class="notice">线路已停用，时间轴仅展示历史到站记录，不执行新的检测。</div>
+  <p v-if="loadError" class="notice">时间轴加载失败。</p>
   <div class="card">
     <div class="tl-track">
       <div v-for="m in data.marks" :key="m.trip_no" class="tl-mark"
