@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
-const data = ref<{ stop_name: string; marks: any[] }>({ stop_name: '', marks: [] })
-onMounted(async () => { data.value = await api('/reports/timeline?line_id=1') })
+import { useActiveLine } from '../useLine'
+const data = ref<{ stop_name: string; is_active?: boolean; marks: any[] }>({ stop_name: '', marks: [] })
+const { lineId, refresh } = useActiveLine()
+onMounted(async () => {
+  await refresh()
+  data.value = await api(`/reports/timeline?line_id=${lineId.value}`)
+})
 </script>
 <template>
   <h1>时间轴明细</h1>
   <p class="sub">站点「{{ data.stop_name }}」到站分布（顶部已展示发车间隔轴）</p>
+  <p v-if="data.is_active === false" class="notice">线路已停用：暂停检测与试算，以下为历史到站记录。</p>
   <div class="card">
     <div class="tl-track">
       <div v-for="m in data.marks" :key="m.trip_no" class="tl-mark"

@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { api } from '../api'
+import { useActiveLine } from '../useLine'
 const trips = ref<any[]>([])
 const events = ref<any[]>([])
+const { line, lineId, refresh } = useActiveLine()
 onMounted(async () => {
+  await refresh()
   trips.value = await api('/trips')
+  if (line.value && !line.value.is_active) { events.value = []; return }
   try {
-    events.value = (await api('/reports/run?line_id=1', { method: 'POST' })).events || []
+    events.value = (await api(`/reports/run?line_id=${lineId.value}`, { method: 'POST' })).events || []
   } catch { events.value = [] }
 })
 function stripClass(s: string) {
@@ -19,6 +23,7 @@ function label(s: string) {
 <template>
   <h1>班次 · 间隔条带</h1>
   <p class="sub">左侧班次清单，右侧串车/间隔竖直条带</p>
+  <p v-if="line && !line.is_active" class="notice">线路已停用：已暂停检测，右侧不生成新的间隔条带。</p>
   <div class="bg-split">
     <aside class="bg-trip-col">
       <h2>班次列表</h2>
@@ -31,23 +36,26 @@ function label(s: string) {
       </div>
     </aside>
     <div class="bg-strip-col">
-      <article
-        v-for="(e, i) in events"
-        :key="i"
-        class="bg-gap-strip"
-        :class="stripClass(e.status)"
-      >
-        <header>{{ e.stop_name }}</header>
-        <div class="bg-gap-body">
-          <div class="bg-gap-val">{{ e.gap_min }}′</div>
-          <div>计划 {{ e.planned_headway_min }}′</div>
-          <div>{{ e.earlier_trip }} → {{ e.later_trip }}</div>
-          <span class="badge" :class="e.status === 'bunching' ? 'badge-bad' : e.status === 'large_gap' ? 'badge-warn' : 'badge-ok'">
-            {{ label(e.status) }}
-          </span>
-        </div>
-      </article>
-      <p v-if="!events.length" class="muted">暂无间隔事件</p>
+      <template v-if="!line || line.is_active">
+        <article
+          v-for="(e, i) in events"
+          :key="i"
+          class="bg-gap-strip"
+          :class="stripClass(e.status)"
+        >
+          <header>{{ e.stop_name }}</header>
+          <div class="bg-gap-body">
+            <div class="bg-gap-val">{{ e.gap_min }}′</div>
+            <div>计划 {{ e.planned_headway_min }}′</div>
+            <div>{{ e.earlier_trip }} → {{ e.later_trip }}</div>
+            <span class="badge" :class="e.status === 'bunching' ? 'badge-bad' : e.status === 'large_gap' ? 'badge-warn' : 'badge-ok'">
+              {{ label(e.status) }}
+            </span>
+          </div>
+        </article>
+        <p v-if="!events.length" class="muted">暂无间隔事件</p>
+      </template>
+      <p v-else class="muted">线路停用期间不进行检测。</p>
     </div>
   </div>
 </template>

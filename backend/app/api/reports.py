@@ -18,6 +18,7 @@ def list_reports(db: Session = Depends(get_db)):
 def run_detection(line_id: int, stop_name: str | None = None, db: Session = Depends(get_db)):
     line = db.get(Line, line_id)
     if not line: raise HTTPException(404, "线路不存在")
+    if not line.is_active: raise HTTPException(409, "线路已停用")
     trips = db.scalars(select(Trip).where(Trip.line_id == line_id)).all()
     trip_ids = [t.id for t in trips]
     trip_no_map = {t.id: t.trip_no for t in trips}
@@ -38,14 +39,18 @@ def suggestions(line_id: int, db: Session = Depends(get_db)):
 
 @router.get("/timeline")
 def timeline(line_id: int, stop_name: str = "市民中心", db: Session = Depends(get_db)):
+    line = db.get(Line, line_id)
+    if not line: raise HTTPException(404, "线路不存在")
     trips = db.scalars(select(Trip).where(Trip.line_id == line_id)).all()
     trip_ids = [t.id for t in trips]
     trip_no_map = {t.id: t.trip_no for t in trips}
     arrivals = sorted(db.scalars(select(Arrival).where(Arrival.trip_id.in_(trip_ids), Arrival.stop_name == stop_name)).all(),
                       key=lambda a: a.actual_arrive)
-    if not arrivals: return {"stop_name": stop_name, "marks": []}
+    # A deactivated line must still open without error: report its state and the
+    # historical arrivals, but never trigger new detection for it.
+    if not arrivals: return {"stop_name": stop_name, "is_active": line.is_active, "marks": []}
     t0 = arrivals[0].actual_arrive
     span = max((arrivals[-1].actual_arrive - t0).total_seconds(), 1)
     marks = [{"trip_no": trip_no_map[a.trip_id], "actual_arrive": a.actual_arrive.isoformat(),
               "pct": round((a.actual_arrive - t0).total_seconds() / span * 100, 2)} for a in arrivals]
-    return {"stop_name": stop_name, "marks": marks}
+    return {"stop_name": stop_name, "is_active": line.is_active, "marks": marks}

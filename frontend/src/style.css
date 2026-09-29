@@ -169,6 +169,28 @@ th { color: var(--bg-dim); font-weight: 600; font-size: 0.78rem; }
 }
 .btn:hover { filter: brightness(1.08); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-off { background: var(--bg-red); color: #1a060b; }
+.btn-on { background: var(--bg-ok); color: #04130c; }
+.notice {
+  background: rgba(255,176,32,0.12);
+  border: 1px solid var(--bg-amber);
+  color: var(--bg-amber);
+  padding: 0.6rem 0.8rem; font-size: 0.85rem; margin: 0 0 1rem;
+}
+.notice-err {
+  background: rgba(255,77,109,0.12);
+  border: 1px solid var(--bg-red);
+  color: var(--bg-red);
+  padding: 0.6rem 0.8rem; font-size: 0.85rem; margin: 0 0 1rem;
+}
+.hist-row { display: flex; gap: 0.6rem; align-items: center; }
+.hist-btn {
+  background: transparent; color: var(--bg-cyan);
+  border: 1px solid var(--bg-edge); padding: 0.3rem 0.6rem;
+  cursor: pointer; font-size: 0.78rem;
+}
+.hist-btn.active { border-color: var(--bg-cyan); background: rgba(46,196,255,0.12); }
+.hist-btn:hover { border-color: var(--bg-cyan); }
 .muted { color: var(--bg-dim); }
 .stat { font-size: 1.55rem; font-weight: 800; }
 
